@@ -121,6 +121,7 @@ let running = false, lastT = 0, frameN = 0;
 // ── render loop ───────────────────────────────────────────────────────────────
 function loop() {
   if (!running) return;
+  if (video.readyState < 2) { requestAnimationFrame(loop); return; }
 
   // fps counter
   const now = performance.now();
@@ -177,7 +178,7 @@ startBtn.addEventListener("click", async () => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
     video.srcObject = stream;
-    await new Promise(r => { video.onloadedmetadata = r; });
+    await video.play();
 
     overlay.classList.add("hidden");
     recLabel.textContent = "REC";
