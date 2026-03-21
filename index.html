@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FACE.DETECT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────────────────────── -->
+<header>
+  <span class="logo">FACE.DETECT</span>
+  <div class="badge">
+    <div class="dot blink" id="rec-dot"></div>
+    <span id="rec-label">INITIALIZING</span>
+  </div>
+</header>
+
+<!-- ── NAV ─────────────────────────────────────────────────────────────── -->
+<nav>
+  <button class="nav-btn active" data-page="single">[ SINGLE ]</button>
+  <button class="nav-btn" data-page="compare" id="compare-tab" disabled>[ COMPARE ]</button>
+</nav>
+
+<!-- ── PAGE: SINGLE ────────────────────────────────────────────────────── -->
+<section id="page-single" class="page active">
+  <div class="cam-wrap">
+    <canvas id="canvas-main"></canvas>
+    <div id="overlay">
+      <span class="ov-title">FACE.DETECT</span>
+      <span class="ov-sub">REAL-TIME EMOTION OVERLAY</span>
+      <button id="start-btn" disabled>[ START CAMERA ]</button>
+      <span id="init-msg">LOADING MODEL...</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── PAGE: COMPARE ───────────────────────────────────────────────────── -->
+<section id="page-compare" class="page">
+  <div class="compare-grid">
+
+    <div class="compare-col">
+      <div class="cam-wrap">
+        <canvas id="canvas-left"></canvas>
+      </div>
+      <div class="compare-label">// RAW FEED</div>
+    </div>
+
+    <div class="compare-col">
+      <div class="cam-wrap">
+        <canvas id="canvas-right"></canvas>
+      </div>
+      <div class="compare-label">// EMOJI OVERLAY</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────────────── -->
+<footer>
+  <span id="footer-status">SYSTEM READY</span>
+  <div class="footer-stats">
+    <span>FACES&nbsp;<span id="s-faces">0</span></span>
+    <span>FPS&nbsp;<span id="s-fps">—</span></span>
+  </div>
+</footer>
+
+<video id="webcam" autoplay playsinline muted></video>
+
+<script type="module" src="js/main.js"></script>
+
+</body>
+</html>
