@@ -21,6 +21,7 @@
 <!-- ── NAV ─────────────────────────────────────────────────────────────── -->
 <nav>
   <button class="nav-btn active" data-page="single">[ SINGLE ]</button>
+  <button class="nav-btn" data-page="preview">[ PREVIEW ]</button>
   <button class="nav-btn" data-page="compare" id="compare-tab" disabled>[ COMPARE ]</button>
   <button class="nav-btn" data-page="remember" id="remember-tab" disabled>[ REMEMBER ]</button>
 </nav>
@@ -56,6 +57,26 @@
 
     <span id="memory-state">MEMORY EMPTY</span>
   </div>
+
+  <div class="record-controls">
+    <button id="record-btn" class="panel-btn" disabled>[ START REC ]</button>
+    <span id="record-state">REC OFF</span>
+  </div>
+</section>
+
+<!-- ── PAGE: PREVIEW ────────────────────────────────────────────────────── -->
+<section id="page-preview" class="page">
+  <div class="preview-head">
+    <div>
+      <div class="panel-title">// RECORDINGS</div>
+      <div id="recording-summary">0 CLIPS</div>
+    </div>
+    <div class="preview-actions">
+      <button id="export-all-btn" class="panel-btn" disabled>[ EXPORT ALL ]</button>
+      <button id="clear-recordings-btn" class="panel-btn subtle" disabled>[ CLEAR ]</button>
+    </div>
+  </div>
+  <div id="recording-list" class="recording-list"></div>
 </section>
 
 <!-- ── PAGE: COMPARE ───────────────────────────────────────────────────── -->

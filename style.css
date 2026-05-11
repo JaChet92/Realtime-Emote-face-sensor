@@ -145,6 +145,31 @@ input {
   padding: 8px 0;
 }
 
+.record-controls {
+  width: 100%;
+  max-width: 720px;
+  margin-top: 16px;
+  border: 3px solid var(--black);
+  box-shadow: var(--px-shadow);
+  display: grid;
+  grid-template-columns: minmax(150px, auto) 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+}
+
+#record-state,
+#recording-summary {
+  color: var(--gray);
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+#record-state.is-recording {
+  color: var(--black);
+  animation: blink 1s step-end infinite;
+}
+
 /* ── CAMERA CANVAS ───────────────────────────────────────────────────────── */
 .cam-wrap {
   position: relative;
@@ -213,6 +238,72 @@ input {
   letter-spacing: 2px;
   color: var(--gray);
   padding: 4px 2px;
+}
+
+/* ── PREVIEW LAYOUT ─────────────────────────────────────────────────────── */
+.preview-head {
+  border: 3px solid var(--black);
+  box-shadow: var(--px-shadow);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.recording-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.recording-empty {
+  border: 3px solid var(--black);
+  box-shadow: var(--px-shadow);
+  color: var(--gray);
+  font-size: 8px;
+  letter-spacing: 1px;
+  padding: 22px;
+}
+
+.recording-card {
+  border: 3px solid var(--black);
+  box-shadow: var(--px-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.recording-card video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--black);
+  border: 3px solid var(--black);
+}
+
+.recording-meta {
+  color: var(--gray);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+.recording-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 /* ── REMEMBER LAYOUT ─────────────────────────────────────────────────────── */
@@ -368,6 +459,7 @@ video { display: none; }
 
   nav,
   .controls,
+  .record-controls,
   .compare-grid,
   .learn-grid {
     grid-template-columns: 1fr;
@@ -383,5 +475,18 @@ video { display: none; }
 
   #memory-state {
     white-space: normal;
+  }
+
+  .preview-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .preview-actions {
+    flex-direction: column;
+  }
+
+  .recording-actions {
+    grid-template-columns: 1fr;
   }
 }

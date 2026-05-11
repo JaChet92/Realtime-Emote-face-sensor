@@ -23,6 +23,14 @@ import {
   MATCH_THRESHOLD,
   updateFaceProfile,
 } from "./recognition.js";
+import {
+  clearRecordings,
+  deleteRecording,
+  downloadBlob,
+  listRecordings,
+  makeRecordingName,
+  saveRecording,
+} from "./recordings.js";
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const video       = document.getElementById("webcam");
@@ -42,6 +50,12 @@ const clearMemBtn   = document.getElementById("clear-memory-btn");
 const learnStatus   = document.getElementById("learn-status");
 const learnProgress = document.getElementById("learn-progress");
 const profileList   = document.getElementById("profile-list");
+const recordBtn     = document.getElementById("record-btn");
+const recordState   = document.getElementById("record-state");
+const recordingSummary = document.getElementById("recording-summary");
+const recordingList = document.getElementById("recording-list");
+const exportAllBtn  = document.getElementById("export-all-btn");
+const clearRecordingsBtn = document.getElementById("clear-recordings-btn");
 
 // canvases
 const canvasMain  = document.getElementById("canvas-main");
@@ -66,12 +80,17 @@ const pages       = document.querySelectorAll(".page");
 // ── page switching ────────────────────────────────────────────────────────────
 let currentPage = "single";
 
+function switchPage(page) {
+  const btn = [...navBtns].find(b => b.dataset.page === page);
+  if (btn?.disabled) return;
+  currentPage = page;
+  navBtns.forEach(b => b.classList.toggle("active", b.dataset.page === page));
+  pages.forEach(p => p.classList.toggle("active", p.id === `page-${page}`));
+}
+
 navBtns.forEach(btn => {
   btn.addEventListener("click", () => {
-    if (btn.disabled) return;
-    currentPage = btn.dataset.page;
-    navBtns.forEach(b => b.classList.toggle("active", b === btn));
-    pages.forEach(p => p.classList.toggle("active", p.id === `page-${currentPage}`));
+    switchPage(btn.dataset.page);
   });
 });
 
@@ -195,6 +214,234 @@ function updateMemoryUi(matchSet = null, renderProfileList = true) {
 
 updateMemoryUi();
 
+// ── recording UI ──────────────────────────────────────────────────────────────
+let recordings = [];
+let recordingUrls = new Map();
+let mediaRecorder = null;
+let recordChunks = [];
+let recordStartedAt = 0;
+let recordTimer = null;
+let recording = false;
+let recordPoster = "";
+
+function canRecordCanvas() {
+  return Boolean(window.MediaRecorder && canvasMain.captureStream);
+}
+
+function preferredMimeType() {
+  const options = [
+    "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
+    "video/mp4;codecs=h264,aac",
+    "video/mp4",
+    "video/webm;codecs=vp9",
+    "video/webm;codecs=vp8",
+    "video/webm",
+  ];
+  return options.find(type => MediaRecorder.isTypeSupported?.(type)) || "";
+}
+
+function fmtDuration(ms) {
+  const total = Math.max(0, Math.round(ms / 1000));
+  const m = String(Math.floor(total / 60)).padStart(2, "0");
+  const s = String(total % 60).padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+function fmtBytes(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+function updateRecordUi() {
+  recordBtn.disabled = !running || !canRecordCanvas();
+  recordBtn.textContent = recording ? "[ STOP REC ]" : "[ START REC ]";
+  recordState.classList.toggle("is-recording", recording);
+
+  if (!canRecordCanvas()) {
+    recordState.textContent = "REC UNSUPPORTED";
+  } else if (recording) {
+    recordState.textContent = `REC ${fmtDuration(performance.now() - recordStartedAt)}`;
+  } else {
+    recordState.textContent = "REC OFF";
+  }
+}
+
+function renderRecordingList() {
+  recordingUrls.forEach(url => URL.revokeObjectURL(url));
+  recordingUrls.clear();
+  recordingList.innerHTML = "";
+
+  recordingSummary.textContent = `${recordings.length} CLIP${recordings.length === 1 ? "" : "S"}`;
+  exportAllBtn.disabled = !recordings.length;
+  clearRecordingsBtn.disabled = !recordings.length;
+
+  if (!recordings.length) {
+    const empty = document.createElement("div");
+    empty.className = "recording-empty";
+    empty.textContent = "NO RECORDED VIDEO";
+    recordingList.append(empty);
+    return;
+  }
+
+  recordings.forEach(recordingItem => {
+    const card = document.createElement("div");
+    card.className = "recording-card";
+
+    const clip = document.createElement("video");
+    const url = URL.createObjectURL(recordingItem.blob);
+    recordingUrls.set(recordingItem.id, url);
+    clip.src = url;
+    if (recordingItem.poster) clip.poster = recordingItem.poster;
+    clip.controls = true;
+    clip.playsInline = true;
+    clip.preload = "metadata";
+
+    const meta = document.createElement("div");
+    meta.className = "recording-meta";
+    const date = new Date(recordingItem.createdAt).toLocaleString();
+    meta.innerHTML = `<span>${fmtDuration(recordingItem.durationMs)}</span><span>${fmtBytes(recordingItem.blob.size)}</span>`;
+
+    const name = document.createElement("div");
+    name.className = "compare-label";
+    name.textContent = `// ${date}`;
+
+    const actions = document.createElement("div");
+    actions.className = "recording-actions";
+
+    const exportBtn = document.createElement("button");
+    exportBtn.className = "panel-btn";
+    exportBtn.type = "button";
+    exportBtn.dataset.exportRecording = recordingItem.id;
+    exportBtn.textContent = "[ EXPORT ]";
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "panel-btn subtle";
+    deleteBtn.type = "button";
+    deleteBtn.dataset.deleteRecording = recordingItem.id;
+    deleteBtn.textContent = "[ DELETE ]";
+
+    actions.append(exportBtn, deleteBtn);
+    card.append(clip, name, meta, actions);
+    recordingList.append(card);
+  });
+}
+
+async function refreshRecordings() {
+  try {
+    recordings = await listRecordings();
+    renderRecordingList();
+  } catch (err) {
+    recordingSummary.textContent = "PREVIEW ERR";
+    footStatus.textContent = String(err?.message || err).slice(0, 48);
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+}
+
+function capturePoster() {
+  try {
+    if (!canvasMain.width || !canvasMain.height) return "";
+    return canvasMain.toDataURL("image/jpeg", 0.82);
+  } catch {
+    return "";
+  }
+}
+
+function recordingStream() {
+  const stream = canvasMain.captureStream(30);
+  const source = video.srcObject;
+  if (source instanceof MediaStream) {
+    source.getAudioTracks().forEach(track => stream.addTrack(track));
+  }
+  return stream;
+}
+
+function startRecording() {
+  if (!running || recording || !canRecordCanvas()) return;
+
+  recordPoster = capturePoster();
+  const stream = recordingStream();
+  const mimeType = preferredMimeType();
+  recordChunks = [];
+  mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+  recordStartedAt = performance.now();
+  recording = true;
+
+  mediaRecorder.ondataavailable = event => {
+    if (event.data?.size) recordChunks.push(event.data);
+  };
+
+  mediaRecorder.onstop = async () => {
+    const durationMs = performance.now() - recordStartedAt;
+    const type = mediaRecorder.mimeType || "video/webm";
+    const blob = new Blob(recordChunks, { type });
+    const createdAt = Date.now();
+    const poster = capturePoster() || recordPoster;
+
+    recording = false;
+    clearInterval(recordTimer);
+    recordTimer = null;
+    updateRecordUi();
+
+    if (blob.size > 0) {
+      const item = {
+        id: `${createdAt}-${Math.random().toString(16).slice(2)}`,
+        name: makeRecordingName(createdAt, type),
+        blob,
+        poster,
+        durationMs,
+        createdAt,
+        mimeType: type,
+      };
+      await saveRecording(item);
+      await refreshRecordings();
+      switchPage("preview");
+      footStatus.textContent = "RECORDING SAVED";
+    }
+  };
+
+  mediaRecorder.start(500);
+  recordTimer = setInterval(updateRecordUi, 250);
+  updateRecordUi();
+  footStatus.textContent = "RECORDING";
+}
+
+recordBtn.addEventListener("click", () => {
+  if (recording) stopRecording();
+  else startRecording();
+});
+
+recordingList.addEventListener("click", async event => {
+  const exportBtn = event.target.closest("[data-export-recording]");
+  if (exportBtn) {
+    const item = recordings.find(r => r.id === exportBtn.dataset.exportRecording);
+    if (item) downloadBlob(item.blob, item.name || makeRecordingName(item.createdAt, item.mimeType));
+    return;
+  }
+
+  const deleteBtn = event.target.closest("[data-delete-recording]");
+  if (deleteBtn) {
+    await deleteRecording(deleteBtn.dataset.deleteRecording);
+    await refreshRecordings();
+    footStatus.textContent = "RECORDING DELETED";
+  }
+});
+
+exportAllBtn.addEventListener("click", () => {
+  recordings.forEach(item => downloadBlob(item.blob, item.name || makeRecordingName(item.createdAt, item.mimeType)));
+});
+
+clearRecordingsBtn.addEventListener("click", async () => {
+  await clearRecordings();
+  await refreshRecordings();
+  footStatus.textContent = "RECORDINGS CLEARED";
+});
+
+await refreshRecordings();
+updateRecordUi();
+
 // ── load emoji images ─────────────────────────────────────────────────────────
 const imgs = {};
 await Promise.all(Object.entries(EMOJI_FILES).map(([k, f]) =>
@@ -236,8 +483,8 @@ try {
 
 // ── render helpers ────────────────────────────────────────────────────────────
 function drawMirrored(renderCtx, W, H) {
-  renderCtx.canvas.width  = W;
-  renderCtx.canvas.height = H;
+  if (renderCtx.canvas.width !== W) renderCtx.canvas.width = W;
+  if (renderCtx.canvas.height !== H) renderCtx.canvas.height = H;
   renderCtx.save();
   renderCtx.scale(-1, 1);
   renderCtx.drawImage(video, -W, 0);
@@ -444,12 +691,13 @@ function loop() {
   for (const t of Object.keys(emoState).map(Number))  if (!alive.has(t)) delete emoState[t];
   prevTracks = newTracks;
 
-  if (currentPage === "single") renderSingle(maskList, W, H);
+  if (recording || currentPage === "single") renderSingle(maskList, W, H);
   else if (currentPage === "compare") renderCompare(maskList, W, H);
-  else renderRemember(boxes, frontIndex, rememberedMatches, W, H);
+  else if (currentPage === "remember") renderRemember(boxes, frontIndex, rememberedMatches, W, H);
 
   sFaces.textContent = faces.length;
-  if (learning) footStatus.textContent = "LEARNING FACE";
+  if (recording) footStatus.textContent = "RECORDING";
+  else if (learning) footStatus.textContent = "LEARNING FACE";
   else if (!faces.length) footStatus.textContent = "NO FACE DETECTED";
   else if (targetMode === "remembered" && faceProfiles.length && rememberedMatches.matches.length) footStatus.textContent = "REMEMBERED FACE VISIBLE";
   else if (targetMode === "remembered" && faceProfiles.length) footStatus.textContent = "REMEMBERED FACE NOT FOUND";
@@ -467,7 +715,7 @@ function cameraUnavailableMessage() {
 }
 
 function getCameraStream() {
-  const constraints = {
+  const videoOnly = {
     audio: false,
     video: {
       width: { ideal: 640 },
@@ -475,9 +723,18 @@ function getCameraStream() {
       facingMode: "user",
     },
   };
+  const withAudio = {
+    ...videoOnly,
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+    },
+  };
 
   if (navigator.mediaDevices?.getUserMedia) {
-    return navigator.mediaDevices.getUserMedia(constraints);
+    return navigator.mediaDevices.getUserMedia(withAudio)
+      .catch(() => navigator.mediaDevices.getUserMedia(videoOnly));
   }
 
   const legacyGetUserMedia =
@@ -488,7 +745,9 @@ function getCameraStream() {
 
   if (legacyGetUserMedia) {
     return new Promise((resolve, reject) => {
-      legacyGetUserMedia.call(navigator, constraints, resolve, reject);
+      legacyGetUserMedia.call(navigator, withAudio, resolve, () => {
+        legacyGetUserMedia.call(navigator, videoOnly, resolve, reject);
+      });
     });
   }
 
@@ -526,6 +785,7 @@ startBtn.addEventListener("click", async () => {
     running = true;
     lastT = performance.now();
     updateMemoryUi();
+    updateRecordUi();
     learnStatus.textContent = faceProfiles.length ? "MEMORY READY" : "NO MEMORY";
     requestAnimationFrame(loop);
     footStatus.textContent = "RUNNING";
