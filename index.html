@@ -22,6 +22,7 @@
 <nav>
   <button class="nav-btn active" data-page="single">[ SINGLE ]</button>
   <button class="nav-btn" data-page="compare" id="compare-tab" disabled>[ COMPARE ]</button>
+  <button class="nav-btn" data-page="remember" id="remember-tab" disabled>[ REMEMBER ]</button>
 </nav>
 
 <!-- ── PAGE: SINGLE ────────────────────────────────────────────────────── -->
@@ -34,6 +35,26 @@
       <button id="start-btn" disabled>[ START CAMERA ]</button>
       <span id="init-msg">LOADING MODEL...</span>
     </div>
+  </div>
+
+  <div class="controls">
+    <label>
+      <span>MASK TARGET</span>
+      <select id="privacy-target">
+        <option value="frontmost">FRONT FACE</option>
+        <option value="remembered">REMEMBERED FACES</option>
+      </select>
+    </label>
+
+    <label>
+      <span>MASK STYLE</span>
+      <select id="privacy-effect">
+        <option value="emoji">EMOJI</option>
+        <option value="blur">BLUR</option>
+      </select>
+    </label>
+
+    <span id="memory-state">MEMORY EMPTY</span>
   </div>
 </section>
 
@@ -52,7 +73,30 @@
       <div class="cam-wrap">
         <canvas id="canvas-right"></canvas>
       </div>
-      <div class="compare-label">// EMOJI OVERLAY</div>
+      <div class="compare-label">// PRIVACY FEED</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── PAGE: REMEMBER ───────────────────────────────────────────────────── -->
+<section id="page-remember" class="page">
+  <div class="learn-grid">
+
+    <div class="compare-col">
+      <div class="cam-wrap">
+        <canvas id="canvas-learn"></canvas>
+      </div>
+      <div class="compare-label">// LEARN FROM FRONT FACE</div>
+    </div>
+
+    <div class="learn-panel">
+      <div class="panel-title">// FACE MEMORY</div>
+      <div id="learn-status">START CAMERA FIRST</div>
+      <div class="learn-meter"><div id="learn-progress"></div></div>
+      <button id="learn-btn" class="panel-btn" disabled>[ LEARN FACE ]</button>
+      <button id="clear-memory-btn" class="panel-btn subtle" disabled>[ CLEAR ALL ]</button>
+      <div class="profile-list" id="profile-list"></div>
     </div>
 
   </div>

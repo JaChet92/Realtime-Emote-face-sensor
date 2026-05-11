@@ -22,6 +22,9 @@ export const MIN_DETECT  = 0.2;
 // ── rendering ─────────────────────────────────────────────────────────────────
 export const EMOJI_PAD = 0.18;
 export const MIN_BOX   = 10;
+export const BLUR_PX   = 42;
+export const MOSAIC_BLOCK = 38;
+export const MOSAIC_TINT_ALPHA = 0.72;
 
 // ── smoothing / tracking ──────────────────────────────────────────────────────
 export const EMA_ALPHA     = 0.30;

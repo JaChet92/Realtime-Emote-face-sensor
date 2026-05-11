@@ -78,6 +78,26 @@ nav {
 }
 .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+select {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  background: var(--white);
+  color: var(--black);
+  border: 3px solid var(--black);
+  padding: 8px;
+  min-height: 34px;
+}
+
+input {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  background: var(--white);
+  color: var(--black);
+  border: 3px solid var(--black);
+  padding: 8px;
+  min-width: 0;
+}
+
 /* ── PAGES ───────────────────────────────────────────────────────────────── */
 .page { display: none; width: 100%; max-width: 960px; }
 .page.active { display: block; }
@@ -94,6 +114,35 @@ nav {
 #page-single .cam-wrap {
   width: 100%;
   max-width: 720px;
+}
+
+.controls {
+  width: 100%;
+  max-width: 720px;
+  margin-top: 16px;
+  border: 3px solid var(--black);
+  box-shadow: var(--px-shadow);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 12px;
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+#memory-state {
+  color: var(--gray);
+  font-size: 7px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  padding: 8px 0;
 }
 
 /* ── CAMERA CANVAS ───────────────────────────────────────────────────────── */
@@ -166,6 +215,124 @@ nav {
   padding: 4px 2px;
 }
 
+/* ── REMEMBER LAYOUT ─────────────────────────────────────────────────────── */
+.learn-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 16px;
+}
+
+.learn-panel {
+  border: 3px solid var(--black);
+  box-shadow: var(--px-shadow);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 100%;
+}
+
+.panel-title {
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+
+#learn-status {
+  min-height: 36px;
+  color: var(--gray);
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+.learn-meter {
+  height: 18px;
+  border: 3px solid var(--black);
+  background: var(--white);
+}
+
+#learn-progress {
+  width: 0%;
+  height: 100%;
+  background: var(--black);
+  transition: width 80ms step-end;
+}
+
+.panel-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  background: var(--black);
+  color: var(--white);
+  border: 3px solid var(--black);
+  padding: 12px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--gray);
+  transition: transform 80ms step-end, box-shadow 80ms step-end;
+}
+
+.panel-btn.subtle {
+  background: var(--white);
+  color: var(--black);
+}
+
+.panel-btn:hover:not(:disabled) {
+  transform: translate(2px,2px);
+  box-shadow: 1px 1px 0 var(--gray);
+}
+
+.panel-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.profile-list {
+  border-top: 3px solid var(--black);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 2px;
+  max-height: 290px;
+  overflow-y: auto;
+  padding-top: 14px;
+}
+
+.profile-empty {
+  color: var(--gray);
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+.profile-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 34px;
+  gap: 8px;
+  align-items: center;
+}
+
+.profile-img {
+  width: 54px;
+  height: 54px;
+  border: 3px solid var(--black);
+  image-rendering: pixelated;
+  object-fit: cover;
+}
+
+.profile-name {
+  width: 100%;
+}
+
+.profile-delete {
+  width: 34px;
+  height: 34px;
+  background: var(--black);
+  color: var(--white);
+  border: 3px solid var(--black);
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  line-height: 1;
+}
+
 /* ── FOOTER ──────────────────────────────────────────────────────────────── */
 footer {
   width: 100%;
@@ -188,3 +355,33 @@ footer {
 }
 
 video { display: none; }
+
+@media (max-width: 760px) {
+  body { padding: 12px; }
+
+  header,
+  footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  nav,
+  .controls,
+  .compare-grid,
+  .learn-grid {
+    grid-template-columns: 1fr;
+  }
+
+  nav {
+    display: grid;
+  }
+
+  .controls {
+    align-items: stretch;
+  }
+
+  #memory-state {
+    white-space: normal;
+  }
+}
