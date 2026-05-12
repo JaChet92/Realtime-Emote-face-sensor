@@ -19,18 +19,26 @@ export function emoScores(bs) {
   const smile      = 0.5 * (g("mouthSmileLeft")  + g("mouthSmileRight"));
   const eyeWide    = 0.5 * (g("eyeWideLeft")      + g("eyeWideRight"));
   const eyeSquint  = 0.5 * (g("eyeSquintLeft")    + g("eyeSquintRight"));
-  const browDown   = 0.5 * (g("browDownLeft")     + g("browDownRight"));
+  const eyeBlink   = 0.5 * (g("eyeBlinkLeft")     + g("eyeBlinkRight"));
+  const browDownL  = g("browDownLeft");
+  const browDownR  = g("browDownRight");
+  const browDown   = 0.5 * (browDownL + browDownR);
+  const browAsym   = Math.abs(browDownL - browDownR);
   const browInner  = g("browInnerUp");
   const mouthPress = 0.5 * (g("mouthPressLeft")   + g("mouthPressRight"));
   const mouthFrown = 0.5 * (g("mouthFrownLeft")   + g("mouthFrownRight"));
   const mouthPuck  = g("mouthPucker");
+  const noseSneer  = 0.5 * (g("noseSneerLeft")    + g("noseSneerRight"));
 
   const s = {
     smile:    clamp(0.80 * smile     + 0.20 * (1 - jawOpen)),
     laughing: clamp(0.60 * smile     + 0.85 * jawOpen    + 0.30 * eyeSquint),
     shocked:  clamp(0.80 * jawOpen   + 0.60 * eyeWide    + 0.40 * browInner - 0.20 * smile),
-    angry:    clamp(0.70 * browDown  + 0.50 * mouthPress + 0.40 * mouthFrown),
+    angry:    clamp(0.18 + 1.05 * browDown + 0.65 * mouthPress + 0.45 * mouthFrown + 0.25 * eyeSquint + 0.25 * noseSneer - 0.20 * smile - 0.10 * browInner),
     thinking: clamp(0.85 * mouthPuck + 0.40 * browInner  + 0.30 * mouthPress),
+    sad:      clamp(0.70 * mouthFrown + 0.40 * browInner + 0.15 * (1 - smile) - 0.20 * jawOpen),
+    sleepy:   clamp(0.65 * eyeBlink   + 0.35 * eyeSquint + 0.20 * (1 - eyeWide) - 0.20 * jawOpen),
+    confused: clamp(0.60 * browAsym   + 0.45 * mouthPuck + 0.25 * browInner  + 0.20 * mouthPress),
   };
 
   const peak = Math.max(...Object.values(s));

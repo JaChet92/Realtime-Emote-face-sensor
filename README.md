@@ -4,6 +4,7 @@
 - Keeps the frontmost face visible and masks other faces with emotion emoji by default
 - Switchable privacy target: frontmost face or saved face profiles
 - Switchable mask style: emoji or blur
+- Runtime-generated emoji stages for sad, sleepy, and confused
 - Record the privacy feed from the Single view
 - **Single view** — privacy-masked camera feed
 - **Preview view** — stored recordings with playback, export, and clear controls
@@ -27,6 +28,7 @@
 └── js/
     ├── config.js           # paths, constants, tuning params
     ├── emotion.js          # emotion scoring logic  (pure, no DOM)
+    ├── generatedEmoji.js   # runtime canvas emoji assets
     ├── recordings.js       # IndexedDB video recording storage
     ├── recognition.js      # lightweight local face memory
     ├── tracker.js          # face tracking / bbox   (pure, no DOM)

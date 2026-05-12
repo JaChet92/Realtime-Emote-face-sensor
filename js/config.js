@@ -13,7 +13,19 @@ export const EMOJI_FILES = {
   neutral:  "Neutral.png",
 };
 
-export const EMOTIONS = ["smile", "laughing", "shocked", "angry", "thinking", "neutral"];
+export const GENERATED_EMOTIONS = ["sad", "sleepy", "confused"];
+
+export const EMOTIONS = [
+  "smile",
+  "laughing",
+  "shocked",
+  "angry",
+  "thinking",
+  "sad",
+  "sleepy",
+  "confused",
+  "neutral",
+];
 
 // ── mediapipe ─────────────────────────────────────────────────────────────────
 export const MAX_FACES   = 6;
