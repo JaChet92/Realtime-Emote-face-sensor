@@ -1,9 +1,14 @@
 ## Features
 
 - Detects up to 6 faces simultaneously
-- Overlays emotion emoji per face (smile, laughing, shocked, angry, thinking, neutral)
-- **Single view** — full-screen emoji overlay
-- **Compare view** — raw feed vs. emoji overlay side by side
+- Keeps the frontmost face visible and masks other faces with emotion emoji by default
+- Switchable privacy target: frontmost face or saved face profiles
+- Switchable mask style: emoji or blur
+- Record the privacy feed from the Single view
+- **Single view** — privacy-masked camera feed
+- **Preview view** — stored recordings with playback, export, and clear controls
+- **Compare view** — raw feed vs. privacy feed side by side
+- **Remember view** — learn many face profiles with thumbnails and editable nicknames
 - EMA smoothing + hysteresis to prevent jitter
 
 ## Project Structure
@@ -22,6 +27,8 @@
 └── js/
     ├── config.js           # paths, constants, tuning params
     ├── emotion.js          # emotion scoring logic  (pure, no DOM)
+    ├── recordings.js       # IndexedDB video recording storage
+    ├── recognition.js      # lightweight local face memory
     ├── tracker.js          # face tracking / bbox   (pure, no DOM)
     └── main.js             # camera, render loop, UI
 ```
@@ -40,6 +47,14 @@ python3 -m http.server 8080
 ```
 
 Then open: `http://localhost:8080/`
+
+## Face Memory
+
+Face profiles are stored in browser `localStorage`. Each saved profile gets a thumbnail and a default nickname like `usr1`, `usr2`, etc. Learning the same face again reuses the existing profile instead of creating a duplicate; this duplicate check uses a stricter threshold than live matching so different people can still be saved as separate profiles. The matcher uses a lightweight signature from MediaPipe landmarks plus a tiny normalized face crop, so it is useful for this camera effect but is not a security-grade identity check.
+
+## Recordings
+
+Recorded clips are stored in browser IndexedDB as MP4 when the browser supports MP4 `MediaRecorder`, otherwise WebM. They include microphone audio when permission is granted, stay local to the browser, and can be exported from the Preview tab.
 
 ## Dependencies
 
