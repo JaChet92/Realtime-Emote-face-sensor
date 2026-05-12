@@ -5,7 +5,7 @@ export const WASM_CDN    = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision
 export const ASSET_BASE  = "./assets/";
 
 export const EMOJI_FILES = {
-  angry:    "Angry.jpeg",
+  angry:    "Angry.png",
   laughing: "Laughing.png",
   thinking: "Thinking.webp",
   shocked:  "shocked.png",
