@@ -3,12 +3,13 @@ import { FaceLandmarker, FilesetResolver }
 
 import {
   MODEL_LOCAL, MODEL_CDN, WASM_CDN,
-  ASSET_BASE, EMOJI_FILES,
+  ASSET_BASE, EMOJI_FILES, GENERATED_EMOTIONS,
   MAX_FACES, MIN_DETECT, MIN_BOX,
   BLUR_PX, MOSAIC_BLOCK, MOSAIC_TINT_ALPHA,
 } from "./config.js";
 
 import { bsDict, emoScores, applyEMA, newEMA, pickEmo } from "./emotion.js";
+import { createGeneratedEmoji } from "./generatedEmoji.js";
 import { bboxMirrored, assignTracks } from "./tracker.js";
 import {
   addFaceProfile,
@@ -453,6 +454,11 @@ await Promise.all(Object.entries(EMOJI_FILES).map(([k, f]) =>
   })
 ));
 
+GENERATED_EMOTIONS.forEach(emotion => {
+  const generated = createGeneratedEmoji(emotion);
+  if (generated) imgs[emotion] = generated;
+});
+
 // ── init mediapipe ────────────────────────────────────────────────────────────
 let landmarker;
 try {
@@ -482,6 +488,11 @@ try {
 }
 
 // ── render helpers ────────────────────────────────────────────────────────────
+function syncCameraAspect(W, H) {
+  if (!W || !H) return;
+  document.documentElement.style.setProperty("--camera-aspect", `${W} / ${H}`);
+}
+
 function drawMirrored(renderCtx, W, H) {
   if (renderCtx.canvas.width !== W) renderCtx.canvas.width = W;
   if (renderCtx.canvas.height !== H) renderCtx.canvas.height = H;
@@ -651,6 +662,7 @@ function loop() {
   }
 
   const W = video.videoWidth || 640, H = video.videoHeight || 480;
+  syncCameraAspect(W, H);
 
   const res    = landmarker.detectForVideo(video, now);
   const faces  = res.faceLandmarks   || [];
@@ -665,8 +677,11 @@ function loop() {
     const tid = idMap[i];
     newTracks[tid] = box;
 
+    const blend = bsDict(blends[i]);
+    const raw = emoScores(blend);
+
     if (!scoreEma[tid]) scoreEma[tid] = newEMA();
-    applyEMA(scoreEma[tid], emoScores(bsDict(blends[i])));
+    applyEMA(scoreEma[tid], raw);
 
     const chosen = pickEmo(scoreEma[tid], emoState[tid]);
     emoState[tid] = chosen;

@@ -176,7 +176,7 @@ input {
   border: 3px solid var(--black);
   box-shadow: var(--px-shadow);
   background: var(--black);
-  aspect-ratio: 4 / 3;
+  aspect-ratio: var(--camera-aspect, 4 / 3);
   overflow: hidden;
 }
 
